@@ -65,8 +65,8 @@ stages:
           latest
 
     - script: |
-        mkdir $(Build.ArtifactStagingDirectory)/DockerImage
-        docker save $(DOCKER_ID)/$(DOCKER_REPO):$(APP_VERSION) -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
+        mkdir -p $(Build.ArtifactStagingDirectory)/DockerImage
+        docker save $(DOCKER_REPO):$(APP_VERSION) -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
@@ -100,4 +100,4 @@ stages:
   jobs:
   - job: JobID_PostBuild
     steps:
-    - script: echo "Done"
+    - script: echo "Final stage reached"
