@@ -29,29 +29,17 @@ stages:
         CURRENT_VER="1.0.5" 
         NEW_VER=$(get_docker_image_latest_version $CURRENT_VER)
         echo "##vso[task.setvariable variable=APP_VERSION;isOutput=true]$NEW_VER"
-        info_msg "Current version found: $CURRENT_VER"
-        info_msg "Calculated new version: $NEW_VER"
       name: CalculateAppVersion
-      displayName: 'Calculate Application Version'
-    - script: |
-        source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
-        info_msg "--- PREDEFINED VARIABLES ---"
-        info_msg "Build.Repository.Name: $(Build.Repository.Name)"
-        info_msg "Build.SourceBranch: $(Build.SourceBranch)"
-      displayName: 'Predefined variables with color'
 
 - stage: StageID_BuildAndTestProject
   displayName: 'Project: Build and Test'
   dependsOn: StageID_PreBuild
   jobs:
   - job: JobID_BuildAndTest
-    displayName: 'Build and Test'
     variables:
       VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
     steps:
-    - script: |
-        echo "Current Version in Build Stage is $(VERSION)" # Завдання А1
-      displayName: 'Print Version (Task A1)'
+    - script: echo "Building version $(VERSION)"
 
 - stage: StageID_BuildAndPushDockerImage
   displayName: 'Docker: Build and Push'
@@ -68,8 +56,8 @@ stages:
     - task: Docker@2
       displayName: 'Build Docker Image'
       inputs:
-        containerRegistry: 'TkachenkoTymur'
-        repository: $(DOCKER_REPO)         
+        containerRegistry: 'DockerHubConnection'
+        repository: $(DOCKER_REPO)
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
@@ -86,25 +74,30 @@ stages:
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
         artifact: 'DockerImage_$(APP_VERSION)'
-        publishLocation: 'pipeline'
+
+    - task: Docker@2
+      displayName: 'Push Docker Image'
+      inputs:
+        containerRegistry: 'DockerHubConnection'
+        repository: $(DOCKER_REPO)
+        command: 'push'
+        tags: |
+          $(APP_VERSION)
+          latest
 
 - stage: StageID_HelmChart
   displayName: 'Helm Chart: Pack and...'
   dependsOn: StageID_BuildAndPushDockerImage
-  condition: succeeded()
   jobs:
   - job: JobID_HelmChart
-    displayName: 'Helm Заглушка'
     steps:
     - script: echo "Helm Stage placeholder"
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
   dependsOn: StageID_HelmChart
-  condition: always() 
+  condition: always()
   jobs:
   - job: JobID_PostBuild
-    displayName: 'Post-Build'
     steps:
-    - script: echo "Final Stage reached"
-      displayName: 'Script'
+    - script: echo "Done"
