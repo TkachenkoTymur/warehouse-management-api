@@ -15,68 +15,24 @@ variables:
 - group: 'USERS_API_VARIABLE_GROUP'
 
 stages:
-- stage: StageID_PreBuild
-  displayName: 'Pre-Build'
+- template: templates/stages/pre-build/v1.yaml@ci-templates
+  parameters:
+    ciTemplatesRepo: 'ci-templates'
+
+- template: templates/stages/dotnet/v1.yaml@ci-templates
+  parameters:
+    appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
+
+- template: templates/stages/docker/v1.yaml@ci-templates
+  parameters:
+    appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
+    dockerHubID: 'tymurtkachenkoks22'
+    dockerRepo: 'users-api'
+
+- stage: StageID_HelmChart
+  displayName: 'Helm Chart'
+  dependsOn: StageID_BuildAndPushDockerImage
   jobs:
-  - job: JobID_PreBuild
+  - job: JobID_HelmChart
     steps:
-    - checkout: self
-    - checkout: ci-templates
-    - script: |
-        source $(Build.SourcesDirectory)/ci-templates/common-scripts/dockerhub.sh
-        NEW_VER=$(get_docker_image_latest_version "1.0.5")
-        echo "##vso[task.setvariable variable=APP_VERSION;isOutput=true]$NEW_VER"
-      name: CalculateAppVersion
-
-- stage: StageID_BuildAndTestProject
-  displayName: 'Project: Build and Test'
-  dependsOn: StageID_PreBuild
-  jobs:
-  - job: JobID_BuildAndTest
-    variables:
-      VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
-    steps:
-    - script: echo "Building version $(VERSION)"
-
-- stage: StageID_BuildAndPushDockerImage
-  displayName: 'Docker: Build and Push'
-  dependsOn: StageID_BuildAndTestProject
-  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
-  jobs:
-  - job: JobID_BuildAndPushDockerImage
-    variables:
-      VER: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
-    steps:
-    - checkout: self
-    
-    - task: Docker@2
-      displayName: 'Build'
-      inputs:
-        containerRegistry: 'DockerHubConnection'
-        repository: 'tymurtkachenkoks22/users-api'
-        command: 'build'
-        Dockerfile: '**/Dockerfile'
-        tags: |
-          $(VER)
-
-    - script: |
-        mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        # Беремо ID останнього створеного образу
-        LAST_ID=$(docker images -q | head -n 1)
-        docker save "$LAST_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
-      displayName: 'Save Docker image to tar'
-
-    - task: PublishPipelineArtifact@1
-      displayName: 'Artifact'
-      inputs:
-        targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
-        artifact: 'DockerImage_$(VER)'
-
-    - task: Docker@2
-      displayName: 'Push'
-      inputs:
-        containerRegistry: 'DockerHubConnection'
-        repository: 'tymurtkachenkoks22/users-api'
-        command: 'push'
-        tags: |
-          $(VER)
+    - script: echo "Helm Stage placeholder"
