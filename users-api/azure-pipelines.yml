@@ -53,7 +53,7 @@ stages:
       displayName: 'Build Docker Image'
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: $(DOCKER_ID)/$(DOCKER_REPO)
+        repository: 'tymurtkachenkoks22/users-api'
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
@@ -62,8 +62,7 @@ stages:
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        LAST_IMAGE_ID=$(docker images -q | head -n 1)
-        docker save "$LAST_IMAGE_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
+        docker save "tymurtkachenkoks22/users-api:$(VER)" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
@@ -76,19 +75,19 @@ stages:
       displayName: 'Push Docker Image'
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: $(DOCKER_ID)/$(DOCKER_REPO)
+        repository: 'tymurtkachenkoks22/users-api'
         command: 'push'
         tags: |
           $(VER)
           latest
 
 - stage: StageID_HelmChart
-  displayName: 'Helm Chart: Pack and...'
+  displayName: 'Helm Chart'
   dependsOn: StageID_BuildAndPushDockerImage
   jobs:
   - job: JobID_HelmChart
     steps:
-    - script: echo "Placeholder"
+    - script: echo "Done"
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
@@ -97,4 +96,4 @@ stages:
   jobs:
   - job: JobID_PostBuild
     steps:
-    - script: echo "Done"
+    - script: echo "Final"
