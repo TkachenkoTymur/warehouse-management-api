@@ -44,7 +44,7 @@ stages:
 - stage: StageID_BuildAndPushDockerImage
   displayName: 'Docker: Build and Push'
   dependsOn: StageID_BuildAndTestProject
-  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))[cite: 1]
   jobs:
   - job: JobID_BuildAndPushDockerImage
     displayName: 'Build and Push'
@@ -66,11 +66,13 @@ stages:
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        docker save "$(DOCKER_REPO):$(VER)" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
+        # Беремо ID останнього зібраного образу[cite: 1]
+        LAST_IMAGE_ID=$(docker images -q | head -n 1)
+        docker save "$LAST_IMAGE_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Docker image artifact'
+      displayName: 'Publish Docker image artifact'[cite: 1]
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
         artifact: 'DockerImage_$(VER)'
