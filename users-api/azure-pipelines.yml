@@ -23,34 +23,21 @@ stages:
     steps:
     - checkout: self
     - checkout: ci-templates
-
     - script: |
         source $(Build.SourcesDirectory)/ci-templates/common-scripts/dockerhub.sh
         source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
-        
-        # Імітуємо поточну версію з Docker Hub
         CURRENT_VER="1.0.5" 
-        
-        # Викликаємо функцію інкременту з твого скрипта
         NEW_VER=$(get_docker_image_latest_version $CURRENT_VER)
-        
-        # Передаємо версію далі по пайплайну
         echo "##vso[task.setvariable variable=APP_VERSION;isOutput=true]$NEW_VER"
-        
         info_msg "Current version found: $CURRENT_VER"
         info_msg "Calculated new version: $NEW_VER"
       name: CalculateAppVersion
       displayName: 'Calculate Application Version'
-
     - script: |
         source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
-        
         info_msg "--- PREDEFINED VARIABLES ---"
-        info_msg "Agent.TempDirectory: $(Agent.TempDirectory)"
-        info_msg "Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)"
         info_msg "Build.Repository.Name: $(Build.Repository.Name)"
         info_msg "Build.SourceBranch: $(Build.SourceBranch)"
-        info_msg "Build.SourcesDirectory: $(Build.SourcesDirectory)"
       displayName: 'Predefined variables with color'
 
 - stage: StageID_BuildAndTestProject
@@ -63,17 +50,39 @@ stages:
       VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
     steps:
     - script: |
-        echo "Hello, from Build And Test Job"
-        echo "Building application version: $(VERSION)"
-      displayName: 'Build with version'
+        echo "Current Version in Build Stage is $(VERSION)" # Завдання А1
+      displayName: 'Print Version (Task A1)'
+
+- stage: StageID_BuildAndPushDockerImage
+  displayName: 'Docker: Build and Push'
+  dependsOn: StageID_BuildAndTestProject
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
+  jobs:
+  - job: JobID_BuildAndPushDockerImage
+    displayName: 'Build and Push'
+    variables:
+      APP_VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
+    steps:
+    - script: echo "Ready to build Docker version $(APP_VERSION)"
+      displayName: 'Check Version Before Build'
+
+- stage: StageID_HelmChart
+  displayName: 'Helm Chart: Pack and...'
+  dependsOn: StageID_BuildAndPushDockerImage
+  condition: succeeded()
+  jobs:
+  - job: JobID_HelmChart
+    displayName: 'Helm Заглушка'
+    steps:
+    - script: echo "Helm Stage placeholder"
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
-  dependsOn: StageID_BuildAndTestProject
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  dependsOn: StageID_HelmChart
+  condition: always() 
   jobs:
   - job: JobID_PostBuild
     displayName: 'Post-Build'
     steps:
-    - script: echo "Hello, from Post-Build Job"
+    - script: echo "Final Stage reached"
       displayName: 'Script'
