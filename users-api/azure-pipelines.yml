@@ -16,13 +16,9 @@ stages:
         
         info_msg "--- PREDEFINED VARIABLES ---"
         info_msg "Agent.TempDirectory: $(Agent.TempDirectory)"
-        info_msg "Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)"
-        info_msg "Build.Repository.LocalPath: $(Build.Repository.LocalPath)"
         info_msg "Build.Repository.Name: $(Build.Repository.Name)"
         info_msg "Build.SourceBranch: $(Build.SourceBranch)"
-        info_msg "Build.SourceBranchName: $(Build.SourceBranchName)"
         info_msg "Build.SourcesDirectory: $(Build.SourcesDirectory)"
-        info_msg "Build.StagingDirectory: $(Build.StagingDirectory)"
       displayName: 'Predefined variables with color'
 
 - stage: StageID_BuildAndTestProject
