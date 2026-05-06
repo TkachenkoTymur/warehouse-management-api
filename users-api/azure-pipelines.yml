@@ -50,7 +50,7 @@ stages:
     - checkout: self
     
     - task: Docker@2
-      displayName: 'Build Docker Image'
+      displayName: 'Build'
       inputs:
         containerRegistry: 'DockerHubConnection'
         repository: 'tymurtkachenkoks22/users-api'
@@ -58,43 +58,25 @@ stages:
         Dockerfile: '**/Dockerfile'
         tags: |
           $(VER)
-          latest
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        IMG_ID=$(docker images -q tymurtkachenkoks22/users-api:$(VER) | head -n 1)
-        docker save "$IMG_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
+        # Беремо ID останнього створеного образу
+        LAST_ID=$(docker images -q | head -n 1)
+        docker save "$LAST_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Docker image artifact'
+      displayName: 'Artifact'
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
         artifact: 'DockerImage_$(VER)'
 
     - task: Docker@2
-      displayName: 'Push Docker Image'
+      displayName: 'Push'
       inputs:
         containerRegistry: 'DockerHubConnection'
         repository: 'tymurtkachenkoks22/users-api'
         command: 'push'
         tags: |
           $(VER)
-          latest
-
-- stage: StageID_HelmChart
-  displayName: 'Helm Chart'
-  dependsOn: StageID_BuildAndPushDockerImage
-  jobs:
-  - job: JobID_HelmChart
-    steps:
-    - script: echo "Helm Stage placeholder"
-
-- stage: StageID_PostBuild
-  displayName: 'Post-Build'
-  dependsOn: StageID_HelmChart
-  condition: always()
-  jobs:
-  - job: JobID_PostBuild
-    steps:
-    - script: echo "Done"
