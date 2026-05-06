@@ -36,3 +36,12 @@ stages:
   - job: JobID_HelmChart
     steps:
     - script: echo "Helm Stage placeholder"
+
+- stage: StageID_PostBuild
+  displayName: 'Post-Build'
+  dependsOn: StageID_HelmChart
+  condition: always()
+  jobs:
+  - job: JobID_PostBuild
+    steps:
+    - script: echo "Done"
