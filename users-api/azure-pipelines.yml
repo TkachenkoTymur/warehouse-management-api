@@ -53,7 +53,7 @@ stages:
       displayName: 'Build Docker Image'
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: $(DOCKER_REPO)
+        repository: $(DOCKER_ID)/$(DOCKER_REPO)
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
@@ -76,7 +76,7 @@ stages:
       displayName: 'Push Docker Image'
       inputs:
         containerRegistry: 'DockerHubConnection'
-        repository: $(DOCKER_REPO)
+        repository: $(DOCKER_ID)/$(DOCKER_REPO)
         command: 'push'
         tags: |
           $(VER)
