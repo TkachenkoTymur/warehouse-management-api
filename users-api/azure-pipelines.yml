@@ -12,14 +12,23 @@ stages:
     displayName: 'Pre-Build Analysis'
     steps:
     - script: |
-        source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
+        echo "--- ПЕРЕВІРКА ФАЙЛІВ ---"
+        ls -d $(Build.SourcesDirectory)/*/
+        
+        LOGPATH=$(find $(Build.SourcesDirectory) -name "logging.sh" | head -n 1)
+        
+        if [ -z "$LOGPATH" ]; then
+          echo "Файл logging.sh не знайдено! Перевір назву репо ci-templates"
+          exit 1
+        fi
+        
+        source "$LOGPATH"
         
         info_msg "--- PREDEFINED VARIABLES ---"
         info_msg "Agent.TempDirectory: $(Agent.TempDirectory)"
         info_msg "Build.Repository.Name: $(Build.Repository.Name)"
         info_msg "Build.SourceBranch: $(Build.SourceBranch)"
-        info_msg "Build.SourcesDirectory: $(Build.SourcesDirectory)"
-      displayName: 'Predefined variables with color'
+      displayName: 'Debug and Print Variables'
 
 - stage: StageID_BuildAndTestProject
   displayName: 'Project: Build and Test'
