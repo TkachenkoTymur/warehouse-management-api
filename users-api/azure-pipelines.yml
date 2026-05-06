@@ -19,15 +19,12 @@ stages:
   displayName: 'Pre-Build'
   jobs:
   - job: JobID_PreBuild
-    displayName: 'Pre-Build Analysis'
     steps:
     - checkout: self
     - checkout: ci-templates
     - script: |
         source $(Build.SourcesDirectory)/ci-templates/common-scripts/dockerhub.sh
-        source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
-        CURRENT_VER="1.0.5" 
-        NEW_VER=$(get_docker_image_latest_version $CURRENT_VER)
+        NEW_VER=$(get_docker_image_latest_version "1.0.5")
         echo "##vso[task.setvariable variable=APP_VERSION;isOutput=true]$NEW_VER"
       name: CalculateAppVersion
 
@@ -44,10 +41,9 @@ stages:
 - stage: StageID_BuildAndPushDockerImage
   displayName: 'Docker: Build and Push'
   dependsOn: StageID_BuildAndTestProject
-  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))[cite: 1]
+  condition: and(succeeded(), eq(variables['Build.SourceBranchName'], 'main'))
   jobs:
   - job: JobID_BuildAndPushDockerImage
-    displayName: 'Build and Push'
     variables:
       VER: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
     steps:
@@ -66,13 +62,12 @@ stages:
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        # Беремо ID останнього зібраного образу[cite: 1]
         LAST_IMAGE_ID=$(docker images -q | head -n 1)
         docker save "$LAST_IMAGE_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
-      displayName: 'Publish Docker image artifact'[cite: 1]
+      displayName: 'Publish Docker image artifact'
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
         artifact: 'DockerImage_$(VER)'
@@ -86,14 +81,14 @@ stages:
         tags: |
           $(VER)
           latest
-####
+
 - stage: StageID_HelmChart
   displayName: 'Helm Chart: Pack and...'
   dependsOn: StageID_BuildAndPushDockerImage
   jobs:
   - job: JobID_HelmChart
     steps:
-    - script: echo "Helm Stage placeholder"
+    - script: echo "Placeholder"
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
@@ -102,4 +97,4 @@ stages:
   jobs:
   - job: JobID_PostBuild
     steps:
-    - script: echo "Final stage reached"
+    - script: echo "Done"
