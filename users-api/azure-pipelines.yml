@@ -62,7 +62,8 @@ stages:
 
     - script: |
         mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
-        docker save "tymurtkachenkoks22/users-api:$(VER)" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
+        IMG_ID=$(docker images -q tymurtkachenkoks22/users-api:$(VER) | head -n 1)
+        docker save "$IMG_ID" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
@@ -87,7 +88,7 @@ stages:
   jobs:
   - job: JobID_HelmChart
     steps:
-    - script: echo "Done"
+    - script: echo "Helm Stage placeholder"
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
@@ -96,4 +97,4 @@ stages:
   jobs:
   - job: JobID_PostBuild
     steps:
-    - script: echo "Final"
+    - script: echo "Done"
