@@ -66,7 +66,8 @@ stages:
 
     - script: |
         mkdir -p $(Build.ArtifactStagingDirectory)/DockerImage
-        docker save $(DOCKER_REPO):$(APP_VERSION) -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
+        # Використовуємо повний шлях, який Docker точно зрозуміє
+        docker save $(DOCKER_ID)/$(DOCKER_REPO):$(APP_VERSION) -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
       displayName: 'Save Docker image to tar'
 
     - task: PublishPipelineArtifact@1
