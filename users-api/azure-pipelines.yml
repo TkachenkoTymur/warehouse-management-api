@@ -12,10 +12,8 @@ stages:
     displayName: 'Pre-Build Analysis'
     steps:
     - script: |
-        # 1. Підключаємо файл зі скриптами (source)
         source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
         
-        # 2. Використовуємо функцію info_msg замість звичайного echo
         info_msg "--- PREDEFINED VARIABLES ---"
         info_msg "Agent.TempDirectory: $(Agent.TempDirectory)"
         info_msg "Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)"
