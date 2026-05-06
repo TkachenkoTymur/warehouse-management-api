@@ -63,8 +63,30 @@ stages:
     variables:
       APP_VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
     steps:
-    - script: echo "Ready to build Docker version $(APP_VERSION)"
-      displayName: 'Check Version Before Build'
+    - checkout: self
+    
+    - task: Docker@2
+      displayName: 'Build Docker Image'
+      inputs:
+        containerRegistry: 'TkachenkoTymur'
+        repository: $(DOCKER_REPO)         
+        command: 'build'
+        Dockerfile: '**/Dockerfile'
+        tags: |
+          $(APP_VERSION)
+          latest
+
+    - script: |
+        mkdir $(Build.ArtifactStagingDirectory)/DockerImage
+        docker save $(DOCKER_ID)/$(DOCKER_REPO):$(APP_VERSION) -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
+      displayName: 'Save Docker image to tar'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Docker image artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
+        artifact: 'DockerImage_$(APP_VERSION)'
+        publishLocation: 'pipeline'
 
 - stage: StageID_HelmChart
   displayName: 'Helm Chart: Pack and...'
