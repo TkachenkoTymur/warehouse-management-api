@@ -49,7 +49,7 @@ stages:
   - job: JobID_BuildAndPushDockerImage
     displayName: 'Build and Push'
     variables:
-      APP_VERSION: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
+      VER: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
     steps:
     - checkout: self
     
@@ -61,23 +61,19 @@ stages:
         command: 'build'
         Dockerfile: '**/Dockerfile'
         tags: |
-          $(APP_VERSION)
+          $(VER)
           latest
 
     - script: |
-        mkdir -p $(Build.ArtifactStagingDirectory)/DockerImage
-        docker save $D_ID/$D_REPO:$D_VER -o $(Build.ArtifactStagingDirectory)/DockerImage/image.tar
+        mkdir -p "$(Build.ArtifactStagingDirectory)/DockerImage"
+        docker save "$(DOCKER_REPO):$(VER)" -o "$(Build.ArtifactStagingDirectory)/DockerImage/image.tar"
       displayName: 'Save Docker image to tar'
-      env:
-        D_ID: $(DOCKER_ID)
-        D_REPO: $(DOCKER_REPO)
-        D_VER: $(APP_VERSION)
 
     - task: PublishPipelineArtifact@1
       displayName: 'Publish Docker image artifact'
       inputs:
         targetPath: '$(Build.ArtifactStagingDirectory)/DockerImage/image.tar'
-        artifact: 'DockerImage_$(APP_VERSION)'
+        artifact: 'DockerImage_$(VER)'
 
     - task: Docker@2
       displayName: 'Push Docker Image'
@@ -86,7 +82,7 @@ stages:
         repository: $(DOCKER_REPO)
         command: 'push'
         tags: |
-          $(APP_VERSION)
+          $(VER)
           latest
 
 - stage: StageID_HelmChart
