@@ -4,6 +4,16 @@ trigger:
       - main
       - feature/*
 
+resources:
+  repositories:
+    - repository: ci-templates
+      type: github
+      name: TkachenkoTymur/ci-templates
+      endpoint: TkachenkoTymur      
+
+variables:
+- group: 'USERS_API_VARIABLE_GROUP'
+
 stages:
 - stage: StageID_PreBuild
   displayName: 'Pre-Build'
@@ -11,24 +21,23 @@ stages:
   - job: JobID_PreBuild
     displayName: 'Pre-Build Analysis'
     steps:
+    - checkout: self
+    - checkout: ci-templates
+
     - script: |
-        echo "--- ПЕРЕВІРКА ФАЙЛІВ ---"
-        ls -d $(Build.SourcesDirectory)/*/
-        
-        LOGPATH=$(find $(Build.SourcesDirectory) -name "logging.sh" | head -n 1)
-        
-        if [ -z "$LOGPATH" ]; then
-          echo "Файл logging.sh не знайдено! Перевір назву репо ci-templates"
-          exit 1
-        fi
-        
-        source "$LOGPATH"
+        # Тепер шлях точно буде працювати
+        source $(Build.SourcesDirectory)/ci-templates/common-scripts/logging.sh
         
         info_msg "--- PREDEFINED VARIABLES ---"
         info_msg "Agent.TempDirectory: $(Agent.TempDirectory)"
+        info_msg "Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)"
+        info_msg "Build.Repository.LocalPath: $(Build.Repository.LocalPath)"
         info_msg "Build.Repository.Name: $(Build.Repository.Name)"
         info_msg "Build.SourceBranch: $(Build.SourceBranch)"
-      displayName: 'Debug and Print Variables'
+        info_msg "Build.SourceBranchName: $(Build.SourceBranchName)"
+        info_msg "Build.SourcesDirectory: $(Build.SourcesDirectory)"
+        info_msg "Build.StagingDirectory: $(Build.StagingDirectory)"
+      displayName: 'Predefined variables with color'
 
 - stage: StageID_BuildAndTestProject
   displayName: 'Project: Build and Test'
