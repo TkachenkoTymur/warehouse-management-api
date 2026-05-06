@@ -1,0 +1,24 @@
+services:
+  users-api:
+    build: 
+      context: .
+      args:
+        - AppVersion=1.3.3.7
+    container_name: users-api-app
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_VERSION=1.3.3.7
+      - DATABASE_URL=postgresql://user:password@db:5432/users_db
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15-alpine
+    container_name: users-db
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: users_db
+    ports:
+      - "5432:5432"

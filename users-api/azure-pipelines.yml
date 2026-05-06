@@ -1,0 +1,44 @@
+trigger:
+  branches:
+    include:
+      - main
+      - feature/*
+
+stages:
+- stage: StageID_PreBuild
+  displayName: 'Pre-Build'
+  jobs:
+  - job: JobID_PreBuild
+    displayName: 'Pre-Build Analysis'
+    steps:
+    - script: |
+        echo "Agent.TempDirectory: $(Agent.TempDirectory)"
+        echo "Build.ArtifactStagingDirectory: $(Build.ArtifactStagingDirectory)"
+        echo "Build.Repository.LocalPath: $(Build.Repository.LocalPath)"
+        echo "Build.Repository.Name: $(Build.Repository.Name)"
+        echo "Build.SourceBranch: $(Build.SourceBranch)"
+        echo "Build.SourceBranchName: $(Build.SourceBranchName)"
+        echo "Build.SourcesDirectory: $(Build.SourcesDirectory)"
+        echo "Build.StagingDirectory: $(Build.StagingDirectory)"
+      displayName: 'Predefined variables'
+
+- stage: StageID_BuildAndTestProject
+  displayName: 'Project: Build and Test'
+  dependsOn: StageID_PreBuild
+  jobs:
+  - job: JobID_BuildAndTest
+    displayName: 'Build and Test'
+    steps:
+    - script: echo "Hello, from Build And Test Job"
+      displayName: 'Script'
+
+- stage: StageID_PostBuild
+  displayName: 'Post-Build'
+  dependsOn: StageID_BuildAndTestProject
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
+  jobs:
+  - job: JobID_PostBuild
+    displayName: 'Post-Build'
+    steps:
+    - script: echo "Hello, from Post-Build Job"
+      displayName: 'Script'
