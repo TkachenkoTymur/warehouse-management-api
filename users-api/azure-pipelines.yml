@@ -1,4 +1,3 @@
-# 1. Подключаем репозиторий с шаблонами
 resources:
   repositories:
     - repository: ci-templates
@@ -7,12 +6,15 @@ resources:
       ref: refs/heads/main
 
 variables:
-  - group: USERS_API_VARIABLE_GROUP 
+  - group: USERS_API_VARIABLE_GROUP
 
 stages:
 - template: templates/stages/pre-build/v1.yaml@ci-templates
   parameters:
     ciTemplatesRepo: 'ci-templates'
+    dockerId: $(DOCKER_ID)
+    dockerRepo: $(DOCKER_REPO)
+    dockerToken: $(DOCKER_TOKEN)
 
 - template: templates/stages/python/v1.yaml@ci-templates
   parameters:
@@ -21,5 +23,5 @@ stages:
 - template: templates/stages/docker/v1.yaml@ci-templates
   parameters:
     appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
-    dockerHubID: $(DOCKER_ID)
+    dockerId: $(DOCKER_ID)
     dockerRepo: $(DOCKER_REPO)
