@@ -9,6 +9,7 @@ variables:
   - group: USERS_API_VARIABLE_GROUP
 
 stages:
+# 1. Шлях без початкового слеша
 - template: templates/stages/pre-build/v1.yaml@ci-templates
   parameters:
     ciTemplates: 'ci-templates'
@@ -16,10 +17,12 @@ stages:
     dockerRepo: $(DOCKER_REPO)
     dockerToken: $(DOCKER_TOKEN)
 
+# 2. Шлях без початкового слеша
 - template: templates/stages/python/v1.yaml@ci-templates
   parameters:
     appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
 
+# 3. Шлях без початкового слеша
 - template: templates/stages/docker/v1.yaml@ci-templates
   parameters:
     appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
