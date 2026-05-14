@@ -11,10 +11,12 @@ variables:
 stages:
 - template: templates/stages/pre-build/v1.yaml@ci-templates
   parameters:
-    ciTemplatesRepo: 'ci-templates'
+    [cite_start]ciTemplates: 'ci-templates' 
     dockerId: $(DOCKER_ID)
     dockerRepo: $(DOCKER_REPO)
     dockerToken: $(DOCKER_TOKEN)
+
+# Решта шаблонів (python та docker) залишаються без змін
 
 - template: templates/stages/python/v1.yaml@ci-templates
   parameters:
