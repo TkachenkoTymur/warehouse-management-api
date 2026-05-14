@@ -19,7 +19,7 @@ stages:
   parameters:
     ciTemplatesRepo: 'ci-templates'
 
-- template: templates/stages/dotnet/v1.yaml@ci-templates
+- template: templates/stages/python/v1.yaml@ci-templates
   parameters:
     appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
 
@@ -36,11 +36,12 @@ stages:
   - job: JobID_HelmChart
     steps:
     - script: echo "Helm Stage placeholder"
+    
 
 - stage: StageID_PostBuild
   displayName: 'Post-Build'
   dependsOn: StageID_HelmChart
-  condition: always()
+  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
   jobs:
   - job: JobID_PostBuild
     steps:
