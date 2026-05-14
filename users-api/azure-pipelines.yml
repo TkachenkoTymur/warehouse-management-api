@@ -1,18 +1,13 @@
-trigger:
-  branches:
-    include:
-      - main
-      - feature/*
-
+# 1. Подключаем репозиторий с шаблонами
 resources:
   repositories:
     - repository: ci-templates
-      type: github
-      name: TkachenkoTymur/ci-templates
-      endpoint: TkachenkoTymur      
+      type: git
+      name: ci-templates
+      ref: refs/heads/main
 
 variables:
-- group: 'USERS_API_VARIABLE_GROUP'
+  - group: USERS_API_VARIABLE_GROUP 
 
 stages:
 - template: templates/stages/pre-build/v1.yaml@ci-templates
@@ -26,23 +21,5 @@ stages:
 - template: templates/stages/docker/v1.yaml@ci-templates
   parameters:
     appVersion: $[ stageDependencies.StageID_PreBuild.JobID_PreBuild.outputs['CalculateAppVersion.APP_VERSION'] ]
-    dockerHubID: 'tymurtkachenkoks22'
-    dockerRepo: 'users-api'
-
-- stage: StageID_HelmChart
-  displayName: 'Helm Chart'
-  dependsOn: StageID_BuildAndPushDockerImage
-  jobs:
-  - job: JobID_HelmChart
-    steps:
-    - script: echo "Helm Stage placeholder"
-    
-
-- stage: StageID_PostBuild
-  displayName: 'Post-Build'
-  dependsOn: StageID_HelmChart
-  condition: and(succeeded(), eq(variables['Build.SourceBranch'], 'refs/heads/main'))
-  jobs:
-  - job: JobID_PostBuild
-    steps:
-    - script: echo "Done"
+    dockerHubID: $(DOCKER_ID)
+    dockerRepo: $(DOCKER_REPO)
